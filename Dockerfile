@@ -5,7 +5,7 @@ FROM alpine:latest
 COPY ./pocketbase /usr/local/bin/pocketbase
 
 # Expose Pocketbase's default port
-EXPOSE 8090
+EXPOSE 80
 
 # Start Pocketbase when the container starts
-CMD ["pocketbase", "serve", "--http=0.0.0.0:8090"]
+CMD ["pocketbase", "serve", "--http=0.0.0.0:80"]
