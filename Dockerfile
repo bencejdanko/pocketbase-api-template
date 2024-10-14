@@ -1,33 +1,22 @@
-# Use the official Golang image for building the Go app
-FROM golang:1.23-alpine AS builder
-
-# Set up working directories
-WORKDIR /app
-
-# Copy the Go module files
-COPY go.mod go.sum ./
-
-# Download dependencies
-RUN go mod download
-
-# Copy the rest of the application code
-COPY . .
-
-# Build the Go app
-RUN go build -o /app/pocketbase-app ./main.go  
-# Update if the entry point is different
-
-# Use a lightweight Alpine image for production
 FROM alpine:latest
 
-# Install necessary CA certificates
-RUN apk add --no-cache ca-certificates
+ARG PB_VERSION=0.22.21
 
-# Copy the built Go binary from the builder stage
-COPY --from=builder /app/pocketbase-app /app/pocketbase-app
+RUN apk add --no-cache \
+    unzip \
+    ca-certificates
 
-# Expose the necessary port
+# download and unzip PocketBase
+ADD https://github.com/pocketbase/pocketbase/releases/download/v${PB_VERSION}/pocketbase_${PB_VERSION}_linux_amd64.zip /tmp/pb.zip
+RUN unzip /tmp/pb.zip -d /pb/
+
+# uncomment to copy the local pb_migrations dir into the image
+# COPY ./pb_migrations /pb/pb_migrations
+
+# uncomment to copy the local pb_hooks dir into the image
+COPY ./pb_hooks /pb/pb_hooks
+
 EXPOSE 8090
 
-# Start the Go app
-CMD ["/app/pocketbase-app"]
+# start PocketBase
+CMD ["/pb/pocketbase", "serve", "--http=0.0.0.0:8090"]
