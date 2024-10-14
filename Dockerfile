@@ -8,4 +8,4 @@ COPY ./pocketbase /usr/local/bin/pocketbase
 EXPOSE 8090
 
 # Start Pocketbase when the container starts
-CMD ["pocketbase", "serve"]
+CMD ["pocketbase", "serve", "pb.32kb.dev"]
