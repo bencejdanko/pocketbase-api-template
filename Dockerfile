@@ -1,29 +1,33 @@
-FROM alpine:latest
+# Use the official Golang image for building the Go app
+FROM golang:1.23-alpine AS builder
 
-# Build arguments
-ARG POCKETBASE_VERSION=0.22.21
-ARG TARGETOS=linux
-ARG TARGETARCH=amd64
-
-# Environment variables
-ENV POCKETBASE_VERSION=${POCKETBASE_VERSION}
-
-# Set working directory
+# Set up working directories
 WORKDIR /app
 
-# Hadolint ignore=DL3018
-RUN apk add --no-cache ca-certificates && \
-    wget -O pocketbase.zip "https://github.com/pocketbase/pocketbase/releases/download/v${POCKETBASE_VERSION}/pocketbase_${POCKETBASE_VERSION}_${TARGETOS}_${TARGETARCH}.zip" && \
-    unzip pocketbase.zip && \
-    rm pocketbase.zip && \
-    chmod +x pocketbase
+# Copy the Go module files
+COPY go.mod go.sum ./
 
+# Download dependencies
+RUN go mod download
 
-# Copy hooks
-COPY ./pb_hooks /app/pb_hooks
+# Copy the rest of the application code
+COPY . .
 
-# Dokku-specific: Use $PORT environment variable
-ENV PORT=8090
+# Build the Go app
+RUN go build -o /app/pocketbase-app ./main.go  
+# Update if the entry point is different
 
-# Start Pocketbase
-CMD ["sh", "-c", "/app/pocketbase serve --http=0.0.0.0:$PORT"]
+# Use a lightweight Alpine image for production
+FROM alpine:latest
+
+# Install necessary CA certificates
+RUN apk add --no-cache ca-certificates
+
+# Copy the built Go binary from the builder stage
+COPY --from=builder /app/pocketbase-app /app/pocketbase-app
+
+# Expose the necessary port
+EXPOSE 8090
+
+# Start the Go app
+CMD ["/app/pocketbase-app"]
