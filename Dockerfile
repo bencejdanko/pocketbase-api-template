@@ -1,22 +1,29 @@
 FROM alpine:latest
 
-ARG PB_VERSION=0.22.21
+# Build arguments
+ARG POCKETBASE_VERSION=0.22.21
+ARG TARGETOS=linux
+ARG TARGETARCH=amd64
 
-RUN apk add --no-cache \
-    unzip \
-    ca-certificates
+# Environment variables
+ENV POCKETBASE_VERSION=${POCKETBASE_VERSION}
 
-# download and unzip PocketBase
-ADD https://github.com/pocketbase/pocketbase/releases/download/v${PB_VERSION}/pocketbase_${PB_VERSION}_linux_amd64.zip /tmp/pb.zip
-RUN unzip /tmp/pb.zip -d /pb/
+# Set working directory
+WORKDIR /app
 
-# uncomment to copy the local pb_migrations dir into the image
-# COPY ./pb_migrations /pb/pb_migrations
+# Hadolint ignore=DL3018
+RUN apk add --no-cache ca-certificates && \
+    wget -O pocketbase.zip "https://github.com/pocketbase/pocketbase/releases/download/v${POCKETBASE_VERSION}/pocketbase_${POCKETBASE_VERSION}_${TARGETOS}_${TARGETARCH}.zip" && \
+    unzip pocketbase.zip && \
+    rm pocketbase.zip && \
+    chmod +x pocketbase
 
-# uncomment to copy the local pb_hooks dir into the image
-COPY ./pb_hooks /pb/pb_hooks
 
-EXPOSE 8090
+# Copy hooks
+COPY ./pb_hooks /app/pb_hooks
 
-# start PocketBase
-CMD ["/pb/pocketbase", "serve", "--http=0.0.0.0:8090"]
+# Dokku-specific: Use $PORT environment variable
+ENV PORT=8090
+
+# Start Pocketbase
+CMD ["sh", "-c", "/app/pocketbase serve --http=0.0.0.0:$PORT"]
