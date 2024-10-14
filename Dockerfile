@@ -30,4 +30,4 @@ COPY --from=builder /app/pocketbase-app /app/pocketbase-app
 EXPOSE 8090
 
 # Start the Go app
-CMD ["./app/pocketbase-app serve --http=0.0.0.0:8090"]
+CMD ["/app/pocketbase-app", "serve", "--http=0.0.0.0:8090"]
