@@ -1,7 +1,7 @@
 FROM alpine:latest
 
 # Copy the nginx.conf.sigil file into the container's /app directory or another preferred directory
-COPY nginx.conf.sigil /app/nginx.conf.sigil
+#COPY nginx.conf.sigil /app/nginx.conf.sigil
 
 ARG PB_VERSION=0.22.21
 
