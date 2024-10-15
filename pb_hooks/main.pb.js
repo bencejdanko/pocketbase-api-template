@@ -96,13 +96,88 @@ routerAdd("GET", "/data220/week4/q", (c) => {
             },
 
             {
+                week: 4,
+
+                html: `
+                    <p> Suppose a certain disease $ D $ occurs in {prior} of the population. </p>
+                    
+                    <p> A test T for this disease has an accuracy of {accuracy}. If the disease D is not present, there is still a {false_positive_rate} chance that the test will return a positive result. </p>
+                `,
+
+                variables: {
+                    prior: (Math.random() * 0.5 + 0.3).toFixed(2),
+                    accuracy: (Math.random() * 0.5 + 0.3).toFixed(2),
+                    false_positive_rate: (Math.random() * 0.5 + 0.3).toFixed(2)
+                },
+
+                correctAnswer: ({ prior, accuracy, false_positive_rate }) => {
+                    return [{
+                        name: "Probability of disease",
+                        value: (accuracy * prior / (accuracy * prior + false_positive_rate * (1 - prior))).toFixed(2)
+                    }]
+                },
+
+                explain: ``
+            },
+
+            {
+                week: 4,
+                html: `
+                    <p> Suppose that two factories supply light bulbs to the market. Factory X's bulb's work for over 5000 hours in {prior_x}, while Factory Y's bulbs work for over 5000 hours in {prior_y} of the cases. </p>
+
+                    <p> It is known that factory X supplies {accuracy_x} of the bulbs and factory Y supplies {accuracy_y} of the bulbs. </p>
+                    
+                    </p>
+
+                    <p> What is the chance that a purchased bulb will last over 5000 hours? </p>
+                `,
+
+                variables: {
+                    prior_x: (Math.random() * 0.5 + 0.3).toFixed(2),
+                    prior_y: (Math.random() * 0.5 + 0.3).toFixed(2),
+                    accuracy_x: (Math.random() * 0.5 + 0.3).toFixed(2),
+                    accuracy_y: (Math.random() * 0.5 + 0.3).toFixed(2)
+                },
+
+                correctAnswer: ({ prior_x, prior_y, accuracy_x, accuracy_y }) => {
+                    return [{
+                        name: "Probability of lasting over 5000 hours",
+                        value: ((prior_x * accuracy_x + prior_y * accuracy_y)).toFixed(2)
+                    }]
+                },
+
+                explain: ``
+
+            },
+
+            {
+                week: 6,
                 html: `
 
+                    <p>Do diabetics have a different blood pressure than the general population?</p>
+
                     <p>
+                    The mean systolic blood pressure of the general population is {mean_general}.
+                    </p>
+
+                    <p>Sample of {sample_size}: $ x\bar = {mean_sample} $ and $ s = {s} $ </p>
+
+                    <p>The researcher decides of a significance level of {alpha} </p>
+
+                    <p> What kind of test is this? </p>
+
+                    <p> Do we reject the null hypothesis? </p>
                 
                 `,
 
-                variables: {},
+                variables: {
+                    mean_general: Math.floor(Math.random() * 50 + 100),
+                    sample_size: Math.floor(Math.random() * 50 + 100),
+                    mean_sample: Math.floor(Math.random() * 50 + 100),
+                    s: Math.floor(Math.random() * 10 + 10),
+                    alpha: Math.random().toFixed(2)
+                },
+
                 correctAnswer: () => {
                     return []
                 },
