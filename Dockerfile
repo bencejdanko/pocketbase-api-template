@@ -19,7 +19,6 @@ COPY pb_public /app/pb_public
 
 # Build the Go app
 RUN go build -o /app/pocketbase-app ./main.go  
-# Update if the entry point is different
 
 # Use a lightweight Alpine image for production
 FROM alpine:latest
@@ -30,7 +29,8 @@ RUN apk add --no-cache ca-certificates
 # Copy the built Go binary from the builder stage
 COPY --from=builder /app/pocketbase-app /app/pocketbase-app
 
-# COPY --from=builder /app/pb_hooks /app/pb_hooks
+COPY --from=builder /app/pb_hooks /app/pb_hooks
+COPY --from=builder /app/pb_public /app/pb_public
 
 # Expose the necessary port
 EXPOSE 8090
