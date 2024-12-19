@@ -14,7 +14,8 @@ RUN go mod download
 COPY . .
 
 # Copy the pb_hooks directory to the app
-# COPY pb_hooks /app/pb_hooks
+COPY pb_hooks /app/pb_hooks
+COPY pb_public /app/pb_public
 
 # Build the Go app
 RUN go build -o /app/pocketbase-app ./main.go  
