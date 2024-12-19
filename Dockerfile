@@ -14,7 +14,7 @@ RUN go mod download
 COPY . .
 
 # Copy the pb_hooks directory to the app
-COPY pb_hooks /app/pb_hooks
+# COPY pb_hooks /app/pb_hooks
 
 # Build the Go app
 RUN go build -o /app/pocketbase-app ./main.go  
@@ -29,7 +29,7 @@ RUN apk add --no-cache ca-certificates
 # Copy the built Go binary from the builder stage
 COPY --from=builder /app/pocketbase-app /app/pocketbase-app
 
-COPY --from=builder /app/pb_hooks /app/pb_hooks
+# COPY --from=builder /app/pb_hooks /app/pb_hooks
 
 # Expose the necessary port
 EXPOSE 8090

@@ -4,6 +4,10 @@ routerAdd("GET", "/hello/:name", (c) => {
     return c.json(200, { "message": "Hello " + name })
 })
 
+routerAdd("GET", "/testing", (c) => {
+    c.html(200, "<h1>Testing</h1>")
+})
+
 routerAdd("GET", "/data220/week4/q", (c) => {
 
     function generateWeek4Problem() {
