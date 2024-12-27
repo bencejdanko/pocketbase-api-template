@@ -7,3 +7,7 @@ routerAdd("GET", "/hello/:name", (c) => {
 routerAdd("GET", "/testing", (c) => {
     c.html(200, "<h1>Testing</h1>")
 })
+
+routerAdd("GET", "/get_chat/", (c) => {
+    
+})

@@ -1,11 +1,11 @@
 # Use the official Golang image for building the Go app
-FROM golang:1.23-alpine AS builder
+FROM golang:1.24-alpine AS builder
 
 # Set up working directories
 WORKDIR /app
 
 # Copy the Go module files
-COPY go.mod go.sum ./
+COPY src/go.mod src/go.sum ./
 
 # Download dependencies
 RUN go mod download
@@ -14,8 +14,8 @@ RUN go mod download
 COPY . .
 
 # Copy the pb_hooks directory to the app
-COPY pb_hooks /app/pb_hooks
-COPY pb_public /app/pb_public
+COPY src/pb_hooks /app/pb_hooks
+COPY src/pb_public /app/pb_public
 
 # Build the Go app
 RUN go build -o /app/pocketbase-app ./main.go  
