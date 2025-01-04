@@ -1,0 +1,3 @@
+Use this resource:
+
+https://github.com/pocketbase/pocketbase/blob/master/tests/api.go

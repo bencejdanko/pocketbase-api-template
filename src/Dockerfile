@@ -5,7 +5,7 @@ FROM golang:1.23.4-alpine AS builder
 WORKDIR /app
 
 # Copy the Go module files
-COPY src/go.mod src/go.sum ./
+COPY go.mod go.sum ./
 
 # Download dependencies
 RUN go mod download
@@ -14,8 +14,8 @@ RUN go mod download
 COPY . .
 
 # Copy the pb_hooks directory to the app
-COPY src/pb_hooks /app/pb_hooks
-COPY src/pb_public /app/pb_public
+COPY pb_hooks pb_hooks
+COPY pb_public pb_public
 
 # Build the Go app
 RUN go build -o /app/pocketbase-app ./main.go  
