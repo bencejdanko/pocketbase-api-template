@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/pocketbase/dbx"
 	"github.com/pocketbase/pocketbase/apis"
 	"github.com/pocketbase/pocketbase/core"
 
@@ -20,19 +21,7 @@ func RegisterRoutes(app core.App) {
 		// register "GET /hello/{name}" route (allowed for everyone)
 		se.Router.GET("/hello/{name}", func(e *core.RequestEvent) error {
 			name := e.Request.PathValue("name")
-
 			return e.String(http.StatusOK, "Hello "+name)
-		})
-
-		// register "POST /api/myapp/settings" route (allowed only for authenticated users)
-		se.Router.POST("/api/myapp/settings", func(e *core.RequestEvent) error {
-			// do something ...
-			return e.JSON(http.StatusOK, map[string]bool{"success": true})
-		}).Bind(apis.RequireAuth())
-
-		// Add more routes here
-		se.Router.GET("/newroute", func(e *core.RequestEvent) error {
-			return e.String(http.StatusOK, "This is a new route")
 		})
 
 		ctx := context.Background()
@@ -46,103 +35,73 @@ func RegisterRoutes(app core.App) {
 			log.Fatal("Unable to create Gemini client: ", err)
 		}
 
-		se.Router.GET("/example_call", func(e *core.RequestEvent) error {
+		/**
+		* Query the an LLM to generate flashcards
+		 */
+		se.Router.GET("/create_cards", func(e *core.RequestEvent) error {
 
-			e.Response.Header().Set("Content-Type", "text/plain")
-			e.Response.Header().Set("Transfer-Encoding", "chunked")
+			//e.Response.Header().Set("Content-Type", "text/plain")
 
-			flusher, ok := e.Response.(http.Flusher)
+			// read/scan the request body into a typed struct
+			body := struct {
+				UserQuery string `json:"user_query"`
+				DeckId    string `json:"deck_id"`
+			}{}
 
-			if !ok {
-				http.Error(e.Response, "Streaming unsupported!", http.StatusInternalServerError)
-				return nil
+			if err := e.BindBody(&body); err != nil {
+				return e.BadRequestError("Invalid request body", err)
 			}
 
-			prompt := "Tell me about New York?"
+			// do I need to verify that current user ID has access to the deck? Check later
 
-			// Call the GenerateContentStream method.
-			for result, err := range client.Models.GenerateContentStream(
-				ctx,
-				"gemini-2.0-flash-exp",
-				genai.Text(prompt),
-				nil,
-			) {
-				if err != nil {
-					log.Fatal(err)
+			// query the database for the current cards
+			cards := []struct {
+				content string `db:"content"`
+			}{}
+
+			app.DB().
+				NewQuery("SELECT content FROM cards WHERE deck_id = {:deck_id}").
+				Bind(dbx.Params{
+					"deck_id": body.DeckId,
+				}).
+				All(&cards)
+
+			// if there are no cards?
+
+			// Turn cards into string for prompt generation
+			var currentCards string
+
+			if len(cards) == 0 {
+				currentCards = "The user has created no cards yet."
+			} else {
+				for _, card := range cards {
+					currentCards += card.content + "\n"
 				}
-				fmt.Fprint(e.Response, result.Candidates[0].Content.Parts[0].Text)
-				flusher.Flush()
 			}
 
-			return nil
-		})
+			// Create a multiline prompt with custom string variables
+			prompt := fmt.Sprintf(`
+				We are trying to respond to a user request for new custom flashcards. If they do not specify a count, we will generate 5 new cards.
 
-		// se.Router.POST("/conversations/{deck_id}", func(e *core.RequestEvent) error {
+				Input Box Label: Generate Cards
+				User input: %s
 
-		// 	deck_id := e.Request.PathValue("deck_id")
+				Here are the users current cards: %s
 
-		// 	collection, err := app.FindCollectionByNameOrId("conversations")
+				We should try to avoid duplicating these cards and the subjects they cover, but we should keep them in mind.
 
-		// 	if err != nil {
-		// 		return err
-		// 	}
+			`, body.UserQuery, currentCards)
 
-		// 	record := core.newRecord(collection)
+			result, err := client.Models.GenerateContent(ctx, "gemini-2.0-flash-exp", genai.Text("What is the capital of France?"), nil)
 
-		// 	record.Set("deck_id", deck_id)
+			if err != nil {
+				log.Fatal(err)
+			}
 
-		// 	err = app.Save(record)
+			text := result.Candidates[0].Content.Parts[0].Text
 
-		// 	if err != nil {
-		// 		return err
-		// 	}
-
-		// 	return e.JSON(http.StatusOK, map[string]bool{"success": true})
-		// }).Bind(apis.RequireAuth())
-
-		// se.Router.GET("/conversations/{id}/messages/{message_id}/text/{text}", func(e *core.RequestEvent) error {
-
-		// 	type document struct {
-		// 		document string
-		// 	}
-
-		// 	id := e.Request.PathValue("id")
-
-		// 	app.DB().NewQuery("SELECT document FROM decks WHERE id = {:id}").
-		// 	Bind(dbx.Params{
-		// 		"id":
-		// 	})
-
-		// 	chat := e.Request.PathValue("chat")
-
-		// 	e.Response.Header().Set("Content-Type", "text/plain")
-		// 	e.Response.Header().Set("Transfer-Encoding", "chunked")
-
-		// 	flusher, ok := e.Response.(http.Flusher)
-
-		// 	if !ok {
-		// 		http.Error(e.Response, "Streaming unsupported!", http.StatusInternalServerError)
-		// 		return nil
-		// 	}
-
-		// 	prompt := fmt.Sprintf("You are an assistant. Please answer this question: %s.", chat)
-
-		// 	// Call the GenerateContentStream method.
-		// 	for result, err := range client.Models.GenerateContentStream(
-		// 		ctx,
-		// 		"gemini-2.0-flash-exp",
-		// 		genai.Text(prompt),
-		// 		nil,
-		// 	) {
-		// 		if err != nil {
-		// 			log.Fatal(err)
-		// 		}
-		// 		fmt.Fprint(e.Response, result.Candidates[0].Content.Parts[0].Text)
-		// 		flusher.Flush()
-		// 	}
-
-		// 	return nil
-		// }).Bind(apis.RequireAuth())
+			return e.JSON(http.StatusOK, map[string]string{"response": text})
+		}).Bind(apis.RequireAuth())
 
 		return se.Next()
 	})
