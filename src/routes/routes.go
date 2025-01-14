@@ -80,19 +80,47 @@ func RegisterRoutes(app core.App) {
 			}
 
 			// Create a multiline prompt with custom string variables
-			prompt := fmt.Sprintf(`
-				We are trying to respond to a user request for new custom flashcards. If they do not specify a count, we will generate 5 new cards.
+			prompt := fmt.Sprintf(
+				`We are trying to respond to a user request for new custom flashcards. If they do not specify a count, we will generate 5 new cards.
 
-				Input Box Label: Generate Cards
-				User input: %s
+Input Box Label: Generate Cards
 
-				Here are the users current cards: %s
+User input: %s
 
-				We should try to avoid duplicating these cards and the subjects they cover, but we should keep them in mind.
+Here are the users current cards: %s
 
-			`, body.UserQuery, currentCards)
+We should try to avoid duplicating these cards and the subjects they cover, but we should keep them in mind.
 
-			result, err := client.Models.GenerateContent(ctx, "gemini-2.0-flash-exp", genai.Text("What is the capital of France?"), nil)
+Existing cards take the following format (between <flashcard> tags):
+
+<flashcard>
+
+question: What is the capital of France?
+answer: Paris
+
+</flashcard>
+
+When generating the new cards, each card should be wrapped in its own <flashcard> tags. For example, here are two new cards:
+
+<flashcard>
+
+question: What is the capital of Spain?
+answer: Madrid
+
+</flashcard>
+
+<flashcard>
+
+question: What is the capital of Italy?
+answer: Rome
+
+</flashcard>
+
+Please output strictly in the tagged format above with no additional body.`, body.UserQuery, currentCards)
+
+			fmt.Printf(prompt)
+
+			result, err := client.Models.GenerateContent(ctx, "gemini-2.0-flash-exp", genai.Text(prompt), nil)
 
 			if err != nil {
 				log.Fatal(err)
