@@ -1,5 +1,3 @@
-"""""""
-
 from dataclasses import dataclass
 from database import DatabaseConn
 
@@ -8,18 +6,18 @@ from pydantic_ai import Agent, RunContext
 
 DATABASE_URL = "sqlite:///./pb_data/data.db"
 
-class DatabaseConn:
+# class DatabaseConn:
 
 
-@dataclass
-class SupportDependencies:
-    user_id: int
-    db: DatabaseConn
+# @dataclass
+# class SupportDependencies:
+#     user_id: int
+#     db: DatabaseConn
 
-agent = Agent(
-    'gemini-1.5-flash',
-    deps_type=SupportDependencies,
-    system_prompt=""
-)
+# agent = Agent(
+#     'gemini-1.5-flash',
+#     deps_type=SupportDependencies,
+#     system_prompt=""
+# )
         
-class SupportResult(BaseModel):
+# class SupportResult(BaseModel):

@@ -74,5 +74,5 @@ onRecordAfterDeleteSuccess((e) => {
  */
 
 /**
- * 
+ * Before a user creates a card, ensure their account tier allows the card type.
  */

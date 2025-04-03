@@ -13,7 +13,7 @@ import (
 	"google.golang.org/genai"
 )
 
-const gemini_api_key = "AIzaSyBwUi28-4mveZ_LIbtP-drSqwtaMS1U2y4"
+const gemini_api_key = ""
 
 // RegisterRoutes registers the custom routes
 func RegisterRoutes(app core.App) {
